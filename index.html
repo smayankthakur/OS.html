@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -33,16 +33,18 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .sidebar-transition { transition: width 0.3s ease; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-        .material-fill { font-variation-settings: 'FILL' 1; }
+        .fill-1 { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
     <div id="root"></div>
 
-    <!-- React and Libraries -->
+    <!-- React and Friends -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
@@ -55,119 +57,130 @@
         const { createRoot } = ReactDOM;
         const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
 
-        // --- Layout Component ---
-        const Layout = ({ children, title = "Dashboard Overview" }) => {
-            const navigate = useNavigate();
-            const location = useLocation();
+        // --- Common Components ---
 
+        const Sidebar = () => {
+            const location = useLocation();
             const navItems = [
-                { path: '/', icon: 'dashboard', label: 'Dashboard' },
-                { path: '/inventory', icon: 'inventory_2', label: 'Inventory' },
-                { path: '/competitors', icon: 'analytics', label: 'Competitors' },
-                { path: '/pricing', icon: 'monitoring', label: 'Price Monitor' },
-                { path: '/tasks', icon: 'task_alt', label: 'Tasks' },
-                { path: '/alerts', icon: 'notifications_active', label: 'Alerts' },
-                { path: '/reports', icon: 'description', label: 'Reports' },
-                { path: '/integrations', icon: 'extension', label: 'Integrations' },
-                { path: '/settings', icon: 'settings', label: 'Settings' },
+                { path: "/", icon: "dashboard", label: "Dashboard" },
+                { path: "/inventory", icon: "inventory_2", label: "Inventory" },
+                { path: "/competitor-tracker", icon: "analytics", label: "Competitor Tracker" },
+                { path: "/price-monitor", icon: "monitoring", label: "Price Monitor" },
+                { path: "/tasks", icon: "task_alt", label: "Tasks" },
+                { path: "/alerts", icon: "notifications_active", label: "Alerts" },
+                { path: "/reports", icon: "description", label: "Reports" },
+                { path: "/integrations", icon: "extension", label: "Integrations" },
             ];
 
             return (
-                <div class="flex h-screen overflow-hidden">
-                    {/* Left Sidebar */}
-                    <aside class="sidebar-transition w-[240px] flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between hidden md:flex">
-                        <div class="flex flex-col h-full">
-                            <div class="p-6 flex items-center gap-3">
-                                <div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
-                                    <span class="material-symbols-outlined text-2xl">biotech</span>
-                                </div>
-                                <div class="flex flex-col overflow-hidden">
-                                    <h1 class="text-slate-900 dark:text-white font-bold text-lg leading-tight truncate">PharOS</h1>
-                                    <p class="text-slate-500 dark:text-slate-400 text-xs truncate">Pharma Intelligence</p>
-                                </div>
+                <aside class="sidebar-transition w-[240px] flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col justify-between hidden lg:flex">
+                    <div class="flex flex-col h-full">
+                        <div class="p-6 flex items-center gap-3">
+                            <div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+                                <span class="material-symbols-outlined text-2xl">biotech</span>
                             </div>
-                            <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
-                                {navItems.map((item) => (
-                                    <Link 
-                                        key={item.path} 
-                                        to={item.path} 
-                                        class={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === item.path ? 'bg-primary/10 text-primary font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                    >
-                                        <span class={`material-symbols-outlined ${location.pathname === item.path ? 'material-fill' : ''}`}>{item.icon}</span>
-                                        <span class="text-sm">{item.label}</span>
-                                    </Link>
-                                ))}
-                            </nav>
-                            <div class="p-4 space-y-4">
-                                <div class="bg-primary rounded-xl p-4 text-white">
-                                    <p class="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">Current Plan</p>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm font-bold">Enterprise</span>
-                                        <span class="material-symbols-outlined text-sm">verified</span>
-                                    </div>
-                                </div>
-                                <Link to="/profile" class="w-full flex items-center justify-between p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left">
-                                    <div class="flex items-center gap-3">
-                                        <div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden ring-2 ring-white dark:ring-slate-800">
-                                            <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ6psNc4D0eWPyO25xKy2DWwkVFJyptJWlmS54sgzIMs-8b5yOVhjgiLNDXGgqsKyZvZFyLhv2km8tOTbvbFiAfBQHMyElkXfC0CL5ZfiOmXGU4BUupjXpFETBPYkn5KKCVR-QIFoZi_j7AHkmyfLNNlrsqQ4VIdu5XFQ4ZU5b4F-FPyS5WnD4JMopnCBx38tkzn5cfC28Y-6B1OG97phTNsdkki3aTlcRduAJn9oW5V9vtgZe-BmBMqEDV55frMUl30HtRYYljCUP"/>
-                                        </div>
-                                        <div class="flex flex-col min-w-0">
-                                            <span class="text-sm font-semibold truncate text-slate-900 dark:text-white">Alex Rivera</span>
-                                            <span class="text-xs text-slate-500 truncate">Admin Profile</span>
-                                        </div>
-                                    </div>
-                                    <span class="material-symbols-outlined text-sm">unfold_more</span>
-                                </Link>
+                            <div class="flex flex-col overflow-hidden">
+                                <h1 class="text-slate-900 dark:text-white font-bold text-lg leading-tight truncate">PharOS</h1>
+                                <p class="text-slate-500 dark:text-slate-400 text-xs truncate">Pharma Intelligence</p>
                             </div>
                         </div>
-                    </aside>
-
-                    {/* Main Wrapper */}
-                    <div class="flex-1 flex flex-col overflow-hidden h-full">
-                        <header class="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
-                            </div>
-                            <div class="flex-1 max-w-xl px-12 hidden lg:block">
-                                <div class="relative group">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
-                                    </div>
-                                    <input class="block w-full pl-10 pr-3 py-2 border-none bg-slate-100 dark:bg-slate-800 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-700 transition-all text-sm placeholder-slate-500" placeholder="Search data..." type="text"/>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
-                                    <span class="relative flex h-2 w-2">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                    </span>
-                                    <span class="text-xs font-medium">Systems Online</span>
-                                </div>
-                                <button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                    <span class="material-symbols-outlined">notifications</span>
-                                    <span class="absolute top-1 right-1 flex h-2 w-2">
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                                    </span>
-                                </button>
-                                <Link to="/profile" class="flex items-center gap-2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                    <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                                        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-eowNFyBP9Ys4cV1mhrfHoztk0-0Fpm8ZCr_xrDhHwRAVlgveFgXbSa114lf6WqsRRClL7Oq5MlxUNbv8jACe2oBIKd_hwPTU8Ik9D77tiqXKM4NYmHsdoiasMDI6XF4K3kEY35AYdkeFwSifyBPCHmnrK8gx2eNufXBQZyOSEpcJC4_9DjbOJjGFKEom9gqF03v7d_MnX8ydTgf8Ufy9AxkOQ1keMWK1sMWI2nlRgMFvN8p5nJTMxdIvtm08fFWl3KDrGK8ZOq9a"/>
-                                    </div>
+                        <nav class="flex-1 px-4 space-y-1 overflow-y-auto mt-2">
+                            {navItems.map(item => (
+                                <Link 
+                                    key={item.path}
+                                    to={item.path} 
+                                    class={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === item.path ? 'bg-primary/10 text-primary font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                >
+                                    <span class={`material-symbols-outlined ${location.pathname === item.path ? 'fill-1' : ''}`}>{item.icon}</span>
+                                    <span class="text-sm">{item.label}</span>
+                                </Link>
+                            ))}
+                            <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+                                <Link to="/settings" class={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${location.pathname === '/settings' ? 'bg-primary/10 text-primary font-semibold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>
+                                    <span class="material-symbols-outlined">settings</span>
+                                    <span class="text-sm">Settings</span>
                                 </Link>
                             </div>
-                        </header>
-                        <main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6">
-                            {children}
-                        </main>
+                        </nav>
+                        <div class="p-4 space-y-4">
+                            <div class="bg-primary rounded-xl p-4 text-white">
+                                <p class="text-xs font-semibold opacity-80 uppercase tracking-wider mb-1">Current Plan</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-bold">Enterprise</span>
+                                    <span class="material-symbols-outlined text-sm">verified</span>
+                                </div>
+                            </div>
+                            <Link to="/profile" class="w-full flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-slate-800 hover:opacity-80">
+                                <div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 overflow-hidden ring-2 ring-white dark:ring-slate-800">
+                                    <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ6psNc4D0eWPyO25xKy2DWwkVFJyptJWlmS54sgzIMs-8b5yOVhjgiLNDXGgqsKyZvZFyLhv2km8tOTbvbFiAfBQHMyElkXfC0CL5ZfiOmXGU4BUupjXpFETBPYkn5KKCVR-QIFoZi_j7AHkmyfLNNlrsqQ4VIdu5XFQ4ZU5b4F-FPyS5WnD4JMopnCBx38tkzn5cfC28Y-6B1OG97phTNsdkki3aTlcRduAJn9oW5V9vtgZe-BmBMqEDV55frMUl30HtRYYljCUP"/>
+                                </div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-sm font-semibold truncate text-slate-900 dark:text-white">Alex Rivera</span>
+                                    <span class="text-xs text-slate-500 truncate">Admin Profile</span>
+                                </div>
+                            </Link>
+                        </div>
                     </div>
-                </div>
+                </aside>
             );
         };
 
-        // --- Page Components ---
+        const TopHeader = ({ title }) => {
+            const navigate = useNavigate();
+            return (
+                <header class="h-16 flex-shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between sticky top-0 z-50">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
+                    </div>
+                    <div class="flex-1 max-w-xl px-12 hidden md:block">
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+                            </div>
+                            <input class="block w-full pl-10 pr-3 py-2 border-none bg-slate-100 dark:bg-slate-800 rounded-xl focus:ring-2 focus:ring-primary focus:bg-white dark:focus:bg-slate-700 transition-all text-sm placeholder:text-slate-500" placeholder="Search drugs, competitors, or SKU data..." type="text"/>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/30">
+                            <span class="relative flex h-2 w-2">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span class="text-xs font-medium">Systems Online</span>
+                        </div>
+                        <button onClick={() => navigate('/alerts')} class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span class="absolute top-1 right-1 flex h-2 w-2">
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+                        </button>
+                        <button onClick={() => navigate('/profile')} class="flex items-center gap-2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                            <div class="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-eowNFyBP9Ys4cV1mhrfHoztk0-0Fpm8ZCr_xrDhHwRAVlgveFgXbSa114lf6WqsRRClL7Oq5MlxUNbv8jACe2oBIKd_hwPTU8Ik9D77tiqXKM4NYmHsdoiasMDI6XF4K3kEY35AYdkeFwSifyBPCHmnrK8gx2eNufXBQZyOSEpcJC4_9DjbOJjGFKEom9gqF03v7d_MnX8ydTgf8Ufy9AxkOQ1keMWK1sMWI2nlRgMFvN8p5nJTMxdIvtm08fFWl3KDrGK8ZOq9a"/>
+                            </div>
+                            <span class="material-symbols-outlined text-slate-400">arrow_drop_down</span>
+                        </button>
+                    </div>
+                </header>
+            );
+        };
 
-        const DashboardPage = () => {
+        const PageLayout = ({ children, title }) => (
+            <div class="flex h-screen overflow-hidden">
+                <Sidebar />
+                <div class="flex-1 flex flex-col overflow-hidden h-full">
+                    <TopHeader title={title} />
+                    <main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6">
+                        {children}
+                    </main>
+                </div>
+            </div>
+        );
+
+        // --- Screen Components ---
+
+        const DashboardOverview = () => {
+            const navigate = useNavigate();
             return (
                 <div class="max-w-[1200px] mx-auto">
                     <div class="grid grid-cols-12 gap-6">
@@ -180,17 +193,15 @@
                                 <button class="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-semibold flex items-center gap-2">
                                     <span class="material-symbols-outlined text-sm">filter_list</span> Filter
                                 </button>
-                                <button class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20">
+                                <button onClick={() => navigate('/reports')} class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20">
                                     <span class="material-symbols-outlined text-sm">download</span> Export Report
                                 </button>
                             </div>
                         </div>
-
+                        
                         <div class="col-span-12 lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
-                                    <span class="material-symbols-outlined">payments</span>
-                                </div>
+                                <div class="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg"><span class="material-symbols-outlined">payments</span></div>
                                 <span class="text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded">+12.4%</span>
                             </div>
                             <p class="text-slate-500 text-sm font-medium">Total Revenue</p>
@@ -198,9 +209,7 @@
                         </div>
                         <div class="col-span-12 lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-lg">
-                                    <span class="material-symbols-outlined">inventory</span>
-                                </div>
+                                <div class="p-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-lg"><span class="material-symbols-outlined">inventory</span></div>
                                 <span class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded">-2.1%</span>
                             </div>
                             <p class="text-slate-500 text-sm font-medium">Stock Levels</p>
@@ -208,9 +217,7 @@
                         </div>
                         <div class="col-span-12 lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-lg">
-                                    <span class="material-symbols-outlined">trending_up</span>
-                                </div>
+                                <div class="p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-lg"><span class="material-symbols-outlined">trending_up</span></div>
                                 <span class="text-xs font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded">+4.8%</span>
                             </div>
                             <p class="text-slate-500 text-sm font-medium">Market Share</p>
@@ -218,9 +225,7 @@
                         </div>
                         <div class="col-span-12 lg:col-span-3 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <div class="flex justify-between items-start mb-4">
-                                <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-lg">
-                                    <span class="material-symbols-outlined">group</span>
-                                </div>
+                                <div class="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 rounded-lg"><span class="material-symbols-outlined">group</span></div>
                                 <span class="text-xs font-bold text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded">Steady</span>
                             </div>
                             <p class="text-slate-500 text-sm font-medium">Active Clients</p>
@@ -231,12 +236,8 @@
                             <div class="flex items-center justify-between mb-6">
                                 <h4 class="font-bold text-lg">Inventory Trends</h4>
                                 <div class="flex gap-2">
-                                    <span class="flex items-center gap-1 text-xs text-slate-500">
-                                        <span class="w-3 h-3 rounded-full bg-primary"></span> Current
-                                    </span>
-                                    <span class="flex items-center gap-1 text-xs text-slate-500">
-                                        <span class="w-3 h-3 rounded-full bg-slate-300"></span> Previous
-                                    </span>
+                                    <span class="flex items-center gap-1 text-xs text-slate-500"><span class="w-3 h-3 rounded-full bg-primary"></span> Current</span>
+                                    <span class="flex items-center gap-1 text-xs text-slate-500"><span class="w-3 h-3 rounded-full bg-slate-300"></span> Previous</span>
                                 </div>
                             </div>
                             <div class="w-full h-64 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center relative overflow-hidden">
@@ -248,40 +249,26 @@
                         <div class="col-span-12 lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                             <h4 class="font-bold text-lg mb-4">Recent Alerts</h4>
                             <div class="space-y-4">
-                                <Link to="/alerts" class="flex gap-4 items-start p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                    <div class="p-2 bg-red-100 text-red-600 rounded-lg flex-shrink-0">
-                                        <span class="material-symbols-outlined text-sm">warning</span>
-                                    </div>
+                                <div onClick={() => navigate('/inventory/sku/PH-90210-A')} class="flex gap-4 items-start p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                                    <div class="p-2 bg-red-100 text-red-600 rounded-lg flex-shrink-0"><span class="material-symbols-outlined text-sm">warning</span></div>
                                     <div>
                                         <p class="text-sm font-bold">Low Stock: Amoxicillin 500mg</p>
-                                        <p class="text-xs text-slate-500">Inventory levels fell below critical threshold.</p>
+                                        <p class="text-xs text-slate-500">Inventory levels fell below critical threshold in Sector A.</p>
                                         <p class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">2 minutes ago</p>
                                     </div>
-                                </Link>
-                                <div class="flex gap-4 items-start p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-l-2 border-primary bg-primary/5">
-                                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg flex-shrink-0">
-                                        <span class="material-symbols-outlined text-sm">price_change</span>
-                                    </div>
+                                </div>
+                                <div onClick={() => navigate('/price-monitor')} class="flex gap-4 items-start p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-l-2 border-primary bg-primary/5 cursor-pointer">
+                                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg flex-shrink-0"><span class="material-symbols-outlined text-sm">price_change</span></div>
                                     <div>
                                         <p class="text-sm font-bold">Price Shift: Generic Lipitor</p>
-                                        <p class="text-xs text-slate-500">Competitor PharmCorp reduced pricing by 15%.</p>
+                                        <p class="text-xs text-slate-500">Competitor PharmCorp reduced pricing by 15% globally.</p>
                                         <p class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">45 minutes ago</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-4 items-start p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                    <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg flex-shrink-0">
-                                        <span class="material-symbols-outlined text-sm">task</span>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-bold">Compliance Report Ready</p>
-                                        <p class="text-xs text-slate-500">Q3 compliance audit report is available.</p>
-                                        <p class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">3 hours ago</p>
-                                    </div>
-                                </div>
                             </div>
-                            <Link to="/alerts" class="block w-full text-center mt-6 py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-500 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                            <button onClick={() => navigate('/alerts')} class="w-full mt-6 py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-500 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                                 View All Alerts
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -289,25 +276,28 @@
         };
 
         const InventoryPage = () => {
-            const [selectedSku, setSelectedSku] = useState(null);
+            const navigate = useNavigate();
+            const [selectedSKU, setSelectedSKU] = useState(null);
+            
+            const inventory = [
+                { sku: "SKU-001", name: "Amoxicillin 500mg", type: "Retail", stock: 1200, days: 85, price: "£12.00", status: "Healthy", color: "emerald" },
+                { sku: "SKU-002", name: "Paracetamol 500mg", type: "Wholesale", stock: 5000, days: 40, price: "£2.50", status: "Low Stock", color: "amber" },
+                { sku: "SKU-003", name: "Loratadine 10mg", type: "Retail", stock: 800, days: 15, price: "£8.00", status: "Critical", color: "red" },
+                { sku: "SKU-004", name: "Ibuprofen 400mg", type: "Hospital", stock: 2500, days: 95, price: "£5.00", status: "Healthy", color: "emerald" },
+                { sku: "SKU-005", name: "Metformin 500mg", type: "Retail", stock: 450, days: 60, price: "£15.00", status: "Healthy", color: "emerald" },
+            ];
 
             return (
                 <div class="grid grid-cols-12 gap-6">
                     <div class="col-span-12 lg:col-span-9 flex flex-col gap-6">
                         <div class="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-white dark:bg-slate-900 p-4 shadow-sm border border-slate-200 dark:border-slate-800">
                             <div class="flex flex-wrap items-center gap-3">
-                                <div class="group relative">
-                                    <button class="flex h-10 items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                        <span class="text-slate-400">Channel:</span> All
-                                        <span class="material-symbols-outlined text-base">expand_more</span>
-                                    </button>
-                                </div>
-                                <div class="group relative">
-                                    <button class="flex h-10 items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                        <span class="text-slate-400">Stock:</span> In Stock
-                                        <span class="material-symbols-outlined text-base">expand_more</span>
-                                    </button>
-                                </div>
+                                <button class="flex h-10 items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    <span class="text-slate-400">Channel:</span> All <span class="material-symbols-outlined text-base">expand_more</span>
+                                </button>
+                                <button class="flex h-10 items-center gap-2 rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    <span class="text-slate-400">Stock:</span> In Stock <span class="material-symbols-outlined text-base">expand_more</span>
+                                </button>
                             </div>
                             <button class="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
                                 <span class="material-symbols-outlined text-lg">add</span> New Product
@@ -323,30 +313,35 @@
                                             <th class="px-6 py-4 min-w-[200px]">Product Name</th>
                                             <th class="px-6 py-4">Channel</th>
                                             <th class="px-6 py-4">Stock</th>
+                                            <th class="px-6 py-4">Days of Cover</th>
                                             <th class="px-6 py-4">Price</th>
-                                            <th class="px-6 py-4">Margin %</th>
                                             <th class="px-6 py-4">Status</th>
                                             <th class="px-6 py-4 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {[
-                                            { sku: 'SKU-001', name: 'Amoxicillin 500mg', chan: 'Retail', stock: '1,200', price: '£12.00', margin: '30%', status: 'Healthy', color: 'emerald' },
-                                            { sku: 'SKU-002', name: 'Paracetamol 500mg', chan: 'Wholesale', stock: '5,000', price: '£2.50', margin: '20%', status: 'Low Stock', color: 'amber' },
-                                            { sku: 'SKU-003', name: 'Loratadine 10mg', chan: 'Retail', stock: '800', price: '£8.00', margin: '50%', status: 'Critical', color: 'red' },
-                                            { sku: 'SKU-004', name: 'Ibuprofen 400mg', chan: 'Hospital', stock: '2,500', price: '£5.00', margin: '25%', status: 'Healthy', color: 'emerald' },
-                                            { sku: 'SKU-005', name: 'Metformin 500mg', chan: 'Retail', stock: '450', price: '£15.00', margin: '40%', status: 'Healthy', color: 'emerald' },
-                                        ].map((item, idx) => (
-                                            <tr key={idx} class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setSelectedSku(item)}>
+                                        {inventory.map((item, idx) => (
+                                            <tr key={idx} class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setSelectedSKU(item)}>
                                                 <td class="px-6 py-4 font-medium text-slate-400">{item.sku}</td>
                                                 <td class="px-6 py-4 font-semibold text-slate-900 dark:text-white">{item.name}</td>
-                                                <td class="px-6 py-4"><span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs font-medium">{item.chan}</span></td>
-                                                <td class="px-6 py-4">{item.stock}</td>
-                                                <td class="px-6 py-4">{item.price}</td>
-                                                <td class="px-6 py-4"><span class={`font-semibold text-${item.color}-600 dark:text-${item.color}-400`}>{item.margin}</span></td>
-                                                <td class="px-6 py-4"><span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${item.color}-100 text-${item.color}-800 dark:bg-${item.color}-900/30 dark:text-${item.color}-400`}>{item.status}</span></td>
+                                                <td class="px-6 py-4"><span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-xs font-medium">{item.type}</span></td>
+                                                <td class="px-6 py-4">{item.stock.toLocaleString()}</td>
+                                                <td class="px-6 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="h-1.5 w-16 rounded-full bg-slate-200 dark:bg-slate-700">
+                                                            <div class={`h-full rounded-full bg-${item.color}-500`} style={{width: `${item.days}%`}}></div>
+                                                        </div>
+                                                        <span class="font-medium">{item.days}</span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 font-medium">{item.price}</td>
+                                                <td class="px-6 py-4">
+                                                    <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${item.color}-100 text-${item.color}-800 dark:bg-${item.color}-900/30 dark:text-${item.color}-400`}>
+                                                        {item.status}
+                                                    </span>
+                                                </td>
                                                 <td class="px-6 py-4 text-right">
-                                                    <Link to="/sku-details" class="text-primary font-bold hover:underline">View</Link>
+                                                    <button onClick={(e) => { e.stopPropagation(); navigate(`/inventory/sku/${item.sku}`); }} class="text-primary font-bold hover:underline">View</button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -357,22 +352,40 @@
                     </div>
 
                     <aside class="col-span-12 lg:col-span-3">
-                        <div class="sticky top-24 flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl p-6">
-                            <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Quick Insights</h2>
-                            <div class="space-y-4">
-                                <div class="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800">
-                                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Total Assets</p>
-                                    <p class="text-xl font-bold text-slate-900 dark:text-white">£482,000</p>
+                        <div class="sticky top-24 flex flex-col rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+                            <div class="border-b border-slate-100 dark:border-slate-800 p-6">
+                                <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-4">SKU Detail</h2>
+                                <div class="flex items-center gap-3">
+                                    <div class="h-12 w-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary">
+                                        <span class="material-symbols-outlined text-3xl">medication</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-900 dark:text-white leading-tight">{selectedSKU ? selectedSKU.name : 'Select a product'}</p>
+                                        <p class="text-xs text-slate-500 font-medium">{selectedSKU ? selectedSKU.sku : '---'}</p>
+                                    </div>
                                 </div>
-                                <div class="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800">
-                                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Stockout Risks</p>
-                                    <p class="text-xl font-bold text-rose-500">14 Items</p>
+                            </div>
+                            <div class="p-6 flex flex-col gap-6">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-100 dark:border-slate-800">
+                                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Stock</p>
+                                        <p class="text-xl font-bold">{selectedSKU ? selectedSKU.stock : '--'}</p>
+                                    </div>
+                                    <div class="rounded-lg bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-100 dark:border-slate-800">
+                                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1">Days Cover</p>
+                                        <p class="text-xl font-bold">{selectedSKU ? selectedSKU.days : '--'}</p>
+                                    </div>
                                 </div>
-                                <div class="flex items-start gap-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 p-4 border border-amber-100 dark:border-amber-900/30">
-                                    <span class="material-symbols-outlined text-amber-600 dark:text-amber-500">warning</span>
-                                    <p class="text-xs text-amber-800/80 dark:text-amber-400/80 leading-relaxed">Lead time is increasing globally for Amoxicillin products.</p>
+                                <div class="flex flex-col gap-3">
+                                    <h3 class="text-sm font-bold">Forecast Insights</h3>
+                                    <div class="flex items-start gap-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 p-4 border border-amber-100 dark:border-amber-900/30">
+                                        <span class="material-symbols-outlined text-amber-600 dark:text-amber-500">warning</span>
+                                        <p class="text-xs text-amber-800/80 dark:text-amber-400/80 leading-relaxed">Lead time is currently 14 days. Ensure restocking by next Friday.</p>
+                                    </div>
                                 </div>
-                                <button class="w-full py-3 bg-primary text-white font-bold rounded-lg shadow-lg shadow-primary/20">Generate Forecast</button>
+                                <button onClick={() => selectedSKU && navigate(`/inventory/sku/${selectedSKU.sku}`)} class="w-full flex h-11 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all">
+                                    View Full Report
+                                </button>
                             </div>
                         </div>
                     </aside>
@@ -380,98 +393,99 @@
             );
         };
 
-        const CompetitorsPage = () => {
+        const SKUDetail = () => {
             return (
-                <div class="max-w-[1440px] mx-auto w-full">
-                    <div class="flex flex-wrap justify-between items-end gap-4 mb-8">
-                        <div class="flex flex-col gap-2">
-                            <h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-tight">Competitor Tracker</h1>
-                            <p class="text-slate-500 dark:text-slate-400 text-lg">Real-time market price monitoring.</p>
+                <div class="max-w-[1440px] mx-auto">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                        <div>
+                            <nav class="flex items-center gap-2 text-sm text-slate-500 mb-2">
+                                <Link to="/inventory" class="hover:text-primary">Inventory</Link>
+                                <span class="material-symbols-outlined text-xs">chevron_right</span>
+                                <span class="text-slate-900 dark:text-slate-100 font-medium">PH-90210-A</span>
+                            </nav>
+                            <h1 class="text-3xl font-black tracking-tight flex items-center gap-3">
+                                Premium Amoxicillin 500mg
+                                <span class="px-2 py-1 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded uppercase tracking-wider">Active</span>
+                            </h1>
                         </div>
-                        <div class="flex gap-3">
-                            <button class="flex items-center gap-2 rounded-xl h-11 px-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold shadow-sm hover:bg-slate-50">
-                                <span class="material-symbols-outlined text-xl">download</span> <span>Export CSV</span>
+                        <div class="flex items-center gap-3">
+                            <button class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold shadow-sm hover:bg-slate-50 transition-colors">
+                                <span class="material-symbols-outlined text-lg">download</span> Export Report
+                            </button>
+                            <button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors">
+                                <span class="material-symbols-outlined text-lg">edit</span> Edit SKU
                             </button>
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total SKUs Tracked</p>
-                            <span class="text-3xl font-black">1,284</span>
+                    <div class="grid grid-cols-12 gap-6">
+                        <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+                            <section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col md:flex-row">
+                                <div class="md:w-1/3 aspect-[4/3] bg-slate-100 dark:bg-slate-800 relative group overflow-hidden">
+                                    <img alt="Product" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNfPi68-9r3RVXKSFnynvN5tsE9uxJFLRjP0JI_Oh3NeBfrf0C4qvD4unQ2g5lZCeJ50eNaNZFlAf4-cPI3ujjBUhk-sYbrr0DDMta5V-BZAgu8XhtwJxsy6aIlqJKrmRI3zUMYHujYCndrMhjReRpq_zjvO-3IrrHJc3F9_xZnKMuI90Nhza7D7G3uI-5plnOcZ8NeC0sJmOhAIYnX0ybMS36U6AV6Rk5RjW1dQPKda06QbYPdLgfcxlEoXuRLtFiBIEjfUQyqi-i"/>
+                                </div>
+                                <div class="p-6 md:w-2/3 flex flex-col justify-between">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div><p class="text-[10px] uppercase font-bold text-slate-400">Manufacturer</p><p class="text-sm font-bold">GlobalPharma Tech Inc.</p></div>
+                                        <div><p class="text-[10px] uppercase font-bold text-slate-400">Lead Time</p><p class="text-sm font-bold">14 Days</p></div>
+                                        <div><p class="text-[10px] uppercase font-bold text-slate-400">Current In-Stock</p><p class="text-xl font-bold">12,400</p></div>
+                                        <div><p class="text-[10px] uppercase font-bold text-slate-400">Unit Price</p><p class="text-xl font-bold">$42.50</p></div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm h-64 flex items-center justify-center">
+                                <p class="text-slate-400">Price vs Competitor Chart Visualization Placeholder</p>
+                            </section>
                         </div>
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Undercutting You</p>
-                            <span class="text-3xl font-black text-rose-500">42</span>
+                        <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+                            <section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                                <h3 class="text-lg font-bold mb-4">Stock Forecast</h3>
+                                <div class="space-y-4">
+                                    <div class="flex justify-between text-sm"><span class="font-medium">Exhaustion Point</span><span class="font-bold text-rose-500">22 Days</span></div>
+                                    <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full"><div class="h-full bg-rose-500 rounded-full w-3/4"></div></div>
+                                    <button class="w-full py-2.5 text-sm font-bold text-primary border border-primary rounded-lg hover:bg-primary/10">Trigger Auto-Reorder</button>
+                                </div>
+                            </section>
                         </div>
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Avg. Price Gap</p>
-                            <span class="text-3xl font-black">-4.2%</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                                <tr class="text-xs font-bold uppercase text-slate-500">
-                                    <th class="px-6 py-4">SKU Details</th>
-                                    <th class="px-6 py-4">Your Price</th>
-                                    <th class="px-6 py-4">Competitor Price</th>
-                                    <th class="px-6 py-4">Gap %</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr class="hover:bg-rose-50/20 dark:hover:bg-rose-900/5 bg-rose-50/10 transition-colors">
-                                    <td class="px-6 py-5"><span class="text-sm font-bold">PH-001-A</span><p class="text-xs text-slate-500">Antibiotic Pack X12</p></td>
-                                    <td class="px-6 py-5 font-bold">$149.00</td>
-                                    <td class="px-6 py-5 font-bold text-rose-600">$129.00</td>
-                                    <td class="px-6 py-5"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700">-13.4%</span></td>
-                                    <td class="px-6 py-5"><span class="px-3 py-1 rounded-lg text-xs font-bold bg-rose-500 text-white">Undercutting</span></td>
-                                    <td class="px-6 py-5 text-right"><span class="material-symbols-outlined text-slate-400">more_vert</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-5"><span class="text-sm font-bold">PH-002-B</span><p class="text-xs text-slate-500">Vitamin Complex 500mg</p></td>
-                                    <td class="px-6 py-5 font-bold">$89.00</td>
-                                    <td class="px-6 py-5 font-bold">$89.00</td>
-                                    <td class="px-6 py-5"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">0.0%</span></td>
-                                    <td class="px-6 py-5"><span class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600">Neutral</span></td>
-                                    <td class="px-6 py-5 text-right"><span class="material-symbols-outlined text-slate-400">more_vert</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             );
         };
 
-        const PricingPage = () => {
+        const CompetitorTracker = () => {
+            const competitors = [
+                { sku: "PH-001-A", yourPrice: "$149.00", compPrice: "$129.00", gap: "-13.4%", status: "Undercutting", color: "rose" },
+                { sku: "PH-002-B", yourPrice: "$89.00", compPrice: "$89.00", gap: "0.0%", status: "Neutral", color: "slate" },
+                { sku: "PH-003-C", yourPrice: "$210.00", compPrice: "$245.00", gap: "+16.6%", status: "Premium", color: "emerald" },
+            ];
             return (
-                <div class="max-w-[1200px] mx-auto">
-                    <div class="mb-8">
-                        <h2 class="text-3xl font-black tracking-tight">Price Monitor</h2>
-                        <p class="text-slate-500">Global market intelligence and real-time volatility.</p>
+                <div class="space-y-8">
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-4xl font-black tracking-tight">Competitor Tracker</h1>
+                        <p class="text-slate-500 text-lg">Real-time market price monitoring and competitive gap analysis.</p>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <h3 class="font-bold mb-6">Price Index Trend</h3>
-                            <div class="h-64 flex items-end justify-between gap-1">
-                                {[40, 60, 55, 85, 70, 95, 80].map((h, i) => (
-                                    <div key={i} class="flex-1 bg-primary/20 hover:bg-primary transition-colors rounded-t-md" style={{ height: `${h}%` }}></div>
-                                ))}
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <h3 class="font-bold mb-6">Category Volatility</h3>
-                            <div class="space-y-4">
-                                {[{ n: 'Antibiotics', p: '78%' }, { n: 'Cardio', p: '42%' }, { n: 'Analgesics', p: '61%' }].map((c, i) => (
-                                    <div key={i} class="space-y-1">
-                                        <div class="flex justify-between text-sm"><span>{c.n}</span><span class="font-bold">{c.p}</span></div>
-                                        <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full"><div class="h-full bg-primary rounded-full" style={{ width: c.p }}></div></div>
-                                    </div>
-                                ))}
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800"><p class="text-slate-500 text-xs font-bold uppercase">Total SKUs Tracked</p><p class="text-3xl font-black">1,284</p></div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800"><p class="text-slate-500 text-xs font-bold uppercase">Undercutting You</p><p class="text-3xl font-black text-rose-500">42</p></div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800"><p class="text-slate-500 text-xs font-bold uppercase">Avg. Price Gap</p><p class="text-3xl font-black">-4.2%</p></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                                    <tr class="text-xs font-bold uppercase text-slate-500"><th class="px-6 py-4">SKU Details</th><th class="px-6 py-4">Your Price</th><th class="px-6 py-4">Competitor Price</th><th class="px-6 py-4">Gap</th><th class="px-6 py-4">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {competitors.map((c, i) => (
+                                        <tr key={i} class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                            <td class="px-6 py-5 font-bold">{c.sku}</td>
+                                            <td class="px-6 py-5">{c.yourPrice}</td>
+                                            <td class="px-6 py-5 text-rose-600 font-bold">{c.compPrice}</td>
+                                            <td class="px-6 py-5"><span class={`px-2 py-0.5 rounded-full text-xs font-bold bg-${c.color}-100 text-${c.color}-700`}>{c.gap}</span></td>
+                                            <td class="px-6 py-5"><span class={`px-3 py-1 rounded-lg text-xs font-bold bg-${c.color}-500 text-white`}>{c.status}</span></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -479,28 +493,31 @@
         };
 
         const TasksPage = () => {
+            const columns = [
+                { title: "Backlog", count: 5, color: "slate", tasks: [{ sku: "SKU-29384", title: "Sterility Testing: Batch B-902-X", priority: "Medium" }] },
+                { title: "In Progress", count: 3, color: "primary", tasks: [{ sku: "SKU-44019", title: "Centrifugation Protocol: Alpha Series", priority: "Critical" }] },
+                { title: "Blocked", count: 1, color: "rose", tasks: [{ sku: "SKU-88273", title: "Autoclave Calibration: Sensor Fault", priority: "High" }] },
+                { title: "Done", count: 8, color: "emerald", tasks: [{ sku: "SKU-55210", title: "Packaging Compliance Check: Lot-404", priority: "Completed" }] },
+            ];
             return (
-                <div class="max-w-[1440px] mx-auto w-full">
-                    <div class="flex flex-wrap justify-between items-end gap-4 mb-8">
-                        <div>
-                            <h1 class="text-4xl font-black">Task Management</h1>
-                            <p class="text-slate-500">Production line scheduling and quality tracking.</p>
-                        </div>
-                        <button class="bg-primary text-white h-11 px-6 rounded-xl font-bold shadow-lg shadow-primary/20">Create Task</button>
+                <div class="space-y-8">
+                    <div class="flex justify-between items-end">
+                        <div><h1 class="text-4xl font-black tracking-tight">Task Management</h1><p class="text-slate-500">Production line scheduling and quality control tracking.</p></div>
+                        <button class="bg-primary text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/20">Create Task</button>
                     </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        {['Backlog', 'In Progress', 'Blocked', 'Done'].map((col, idx) => (
-                            <div key={idx} class="flex flex-col gap-4">
-                                <h3 class="font-bold text-xs uppercase tracking-widest text-slate-500 px-2">{col}</h3>
-                                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all cursor-pointer">
-                                    <div class="flex justify-between mb-3"><span class="px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-bold">SKU-29384</span></div>
-                                    <h4 class="font-semibold text-sm mb-4">Sample Task: {col} State</h4>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs text-slate-500">Oct 24, 2023</span>
-                                        <div class="size-7 rounded-full bg-slate-200 overflow-hidden"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvkapcLAfVPuDs1seg_4KyI0jIm96D5vyqhXCS88q6I_7UHv_ZMj-l975iL56JU5uxsvyeqDXrpaVX6DpIcbBJ0VyLleLbeRTmWaUuodHRZCCjbq2Bb7TAvCv0QMNu7eJFP5gcGyDvhiDGoR2IANBsBmA76PFRUoN-nQipi-WaJwxfmtxkJ8TFqq9tPr3pTeaajcZYWjB1n7E1ghxMOfMyzdzNkP1Biai4dywedyqb7f7qbCyVb7sbjs_DhsIYypzaRvy_hVpUeDay"/></div>
-                                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                        {columns.map((col, i) => (
+                            <div key={i} class="space-y-4">
+                                <div class="flex justify-between items-center px-2">
+                                    <div class="flex items-center gap-2"><div class={`h-2 w-2 rounded-full bg-${col.color}-500`}></div><h3 class="text-xs font-bold uppercase tracking-widest">{col.title}</h3><span class="text-xs bg-slate-200 dark:bg-slate-800 px-2 rounded-full">{col.count}</span></div>
                                 </div>
+                                {col.tasks.map((task, ti) => (
+                                    <div key={ti} class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                                        <div class="flex justify-between items-start mb-3"><span class="px-2 py-1 rounded bg-primary/10 text-primary text-[10px] font-bold">{task.sku}</span><span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-[10px] font-bold">{task.priority}</span></div>
+                                        <h4 class="font-semibold text-base mb-4 leading-snug">{task.title}</h4>
+                                        <div class="flex items-center justify-between text-slate-500 text-xs"><span class="material-symbols-outlined text-lg">calendar_today</span> Oct 24, 2023</div>
+                                    </div>
+                                ))}
                             </div>
                         ))}
                     </div>
@@ -508,61 +525,79 @@
             );
         };
 
-        const AlertsPage = () => {
+        const PriceMonitor = () => {
             return (
-                <div class="max-w-[1200px] mx-auto">
-                    <h1 class="text-3xl font-black mb-8">Alerts Center</h1>
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
-                                <tr>
-                                    <th class="px-6 py-4">Severity</th>
-                                    <th class="px-6 py-4">Item</th>
-                                    <th class="px-6 py-4">Description</th>
-                                    <th class="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                                <tr class="hover:bg-slate-50/50 transition-colors">
-                                    <td class="px-6 py-5"><span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">CRITICAL</span></td>
-                                    <td class="px-6 py-5"><span class="font-bold">PHA-9928</span><p class="text-xs text-slate-500">Amoxicillin 500mg</p></td>
-                                    <td class="px-6 py-5 text-sm text-slate-600">Market price drop of 24% detected. Margin threshold exceeded.</td>
-                                    <td class="px-6 py-5 text-right"><button class="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold">Fix Price</button></td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-5"><span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">WARNING</span></td>
-                                    <td class="px-6 py-5"><span class="font-bold">SKU-4412</span><p class="text-xs text-slate-500">Lisinopril 10mg</p></td>
-                                    <td class="px-6 py-5 text-sm text-slate-600">Low stock level detected (42 units). Stock-out imminent.</td>
-                                    <td class="px-6 py-5 text-right"><button class="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Restock</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="space-y-8">
+                    <div class="flex justify-between items-end">
+                        <div><h2 class="text-3xl font-black tracking-tight">Price Monitor</h2><p class="text-slate-500">Global market intelligence and real-time price volatility tracking.</p></div>
+                        <button class="bg-primary text-white px-6 py-2 rounded-xl font-bold">Export Report</button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 h-64 flex items-center justify-center">
+                            <p class="text-slate-400">Price Index Trend Chart Placeholder</p>
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <h3 class="font-bold mb-6">Category Volatility</h3>
+                            <div class="space-y-4">
+                                {['Antibiotics', 'Cardiovascular', 'Analgesics'].map((cat, i) => (
+                                    <div key={i} class="space-y-1">
+                                        <div class="flex justify-between text-sm font-medium"><span>{cat}</span><span>{78 - i * 15}%</span></div>
+                                        <div class="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-primary" style={{width: `${78 - i * 15}%`}}></div></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        const ReportsPage = () => {
+        const AlertsCenter = () => {
+            const alerts = [
+                { severity: "CRITICAL", sku: "PHA-9928", item: "Amoxicillin 500mg", desc: "Market price drop of 24% detected. Current selling price is below minimum margin threshold.", time: "2 minutes ago" },
+                { severity: "WARNING", sku: "SKU-4412", item: "Lisinopril 10mg", desc: "Low stock level detected (42 units). Stock-out expected within 48 hours.", time: "32 minutes ago" },
+            ];
             return (
-                <div class="max-w-6xl mx-auto flex flex-col gap-8">
-                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                        <div>
-                            <h1 class="text-3xl font-black">Reports Library</h1>
-                            <p class="text-slate-500">Manage pharmaceutical performance data.</p>
+                <div class="space-y-8">
+                    <div><h1 class="text-3xl font-black tracking-tight">Alerts Center</h1><p class="text-slate-600">Manage real-time pharmaceutical inventory and pricing anomalies.</p></div>
+                    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-slate-50 dark:bg-slate-800 text-xs font-bold uppercase text-slate-500">
+                                    <tr><th class="px-6 py-4">Severity</th><th class="px-6 py-4">SKU / Item</th><th class="px-6 py-4">Description</th><th class="px-6 py-4">Timestamp</th><th class="px-6 py-4 text-right">Actions</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {alerts.map((a, i) => (
+                                        <tr key={i} class="hover:bg-slate-50 transition-colors">
+                                            <td class="px-6 py-5"><span class={`px-3 py-1 rounded-full text-xs font-bold bg-${a.severity === 'CRITICAL' ? 'red' : 'amber'}-100 text-${a.severity === 'CRITICAL' ? 'red' : 'amber'}-700`}>{a.severity}</span></td>
+                                            <td class="px-6 py-5"><strong>{a.sku}</strong><br/><span class="text-xs text-slate-500">{a.item}</span></td>
+                                            <td class="px-6 py-5 text-sm text-slate-600 max-w-md">{a.desc}</td>
+                                            <td class="px-6 py-5 text-sm text-slate-400">{a.time}</td>
+                                            <td class="px-6 py-5 text-right"><button class="bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold">Review</button></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                        <button class="bg-primary text-white px-4 py-2 rounded-xl font-bold text-sm">Generate New</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { title: 'Monthly Margin Analysis', desc: 'Detailed breakdown of profit margins across all categories.', color: 'blue' },
-                            { title: 'Inventory Turnover', desc: 'Track stock velocity and identify slow-moving SKU\'s.', color: 'emerald' },
-                            { title: 'Competitor History', desc: 'Aggregated pricing history of local competitors.', color: 'amber' }
-                        ].map((report, i) => (
-                            <div key={i} class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg transition-all">
-                                <div class={`h-32 bg-${report.color}-500/10`}></div>
-                                <div class="p-6">
-                                    <h3 class="font-bold mb-2">{report.title}</h3>
-                                    <p class="text-xs text-slate-500 mb-4">{report.desc}</p>
+                </div>
+            );
+        };
+
+        const ReportsLibrary = () => {
+            return (
+                <div class="max-w-6xl mx-auto space-y-8">
+                    <div class="flex justify-between items-end">
+                        <div><h1 class="text-3xl font-black tracking-tight">Reports Library</h1><p class="text-slate-500">Manage and export your pharmaceutical performance data.</p></div>
+                        <button class="bg-primary text-white px-4 py-2 rounded-xl font-bold">Generate New</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {['Monthly Margin Analysis', 'Inventory Turnover', 'Competitor History'].map((rep, i) => (
+                            <div key={i} class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                                <div class="h-32 bg-slate-100 dark:bg-slate-900 flex items-center justify-center"><span class="material-symbols-outlined text-4xl text-primary/20">analytics</span></div>
+                                <div class="p-6 space-y-4">
+                                    <h3 class="text-lg font-bold">{rep}</h3>
+                                    <p class="text-sm text-slate-500">Detailed breakdown of key metrics for business optimization.</p>
                                     <button class="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold">View Online</button>
                                 </div>
                             </div>
@@ -572,25 +607,25 @@
             );
         };
 
-        const IntegrationsPage = () => {
+        const Integrations = () => {
+            const apps = [
+                { name: "Shopify Store", icon: "shopping_cart", status: "Connected", color: "green", desc: "Sync orders, inventory, and customer data in real-time." },
+                { name: "Amazon Seller", icon: "storefront", status: "Disconnected", color: "red", desc: "Direct integration for FBA & FBM management." },
+                { name: "Slack", icon: "chat", status: "Connected", color: "green", desc: "Automated inventory alerts and team notifications." },
+            ];
             return (
-                <div class="max-w-[1200px] mx-auto">
-                    <h2 class="text-3xl font-black mb-8">Integrations</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {[
-                            { name: 'Shopify Store', status: 'Connected', icon: 'shopping_cart', color: '#95BF47' },
-                            { name: 'Amazon Seller', status: 'Disconnected', icon: 'storefront', color: '#FF9900' },
-                            { name: 'Slack Alerts', status: 'Connected', icon: 'chat', color: '#4A154B' }
-                        ].map((int, i) => (
-                            <div key={i} class="bg-white dark:bg-slate-900 border border-slate-200 rounded-xl p-6">
-                                <div class="flex justify-between mb-4">
-                                    <div class="size-12 rounded-lg flex items-center justify-center text-white" style={{ backgroundColor: int.color }}>
-                                        <span class="material-symbols-outlined">{int.icon}</span>
-                                    </div>
-                                    <span class={`text-[10px] font-bold px-2 py-1 rounded-full ${int.status === 'Connected' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{int.status}</span>
+                <div class="space-y-8">
+                    <div><h2 class="text-3xl font-black tracking-tight">Integrations</h2><p class="text-slate-600">Connect and manage your external sales channels.</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {apps.map((app, i) => (
+                            <div key={i} class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 flex flex-col">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="size-14 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><span class="material-symbols-outlined text-4xl">{app.icon}</span></div>
+                                    <span class={`px-2.5 py-1 rounded-full text-[11px] font-bold bg-${app.color}-100 text-${app.color}-700 uppercase tracking-wider`}>{app.status}</span>
                                 </div>
-                                <h3 class="font-bold">{int.name}</h3>
-                                <button class="mt-4 w-full py-2 border rounded-lg text-sm font-bold">Configure</button>
+                                <h3 class="text-lg font-bold">{app.name}</h3>
+                                <p class="text-sm text-slate-500 mt-2 mb-6">{app.desc}</p>
+                                <button class="mt-auto bg-primary text-white py-2 rounded-lg text-sm font-bold">Configure</button>
                             </div>
                         ))}
                     </div>
@@ -600,102 +635,38 @@
 
         const SettingsPage = () => {
             return (
-                <div class="max-w-4xl mx-auto space-y-10">
-                    <h1 class="text-3xl font-black">Workspace Settings</h1>
-                    <div class="bg-white dark:bg-slate-900 rounded-xl border p-6 shadow-sm space-y-6">
+                <div class="max-w-4xl mx-auto space-y-8">
+                    <div><h1 class="text-3xl font-black tracking-tight">Workspace Settings</h1><p class="text-slate-600">Configure your team environment and administrative preferences.</p></div>
+                    <section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-semibold">Workspace Name</span>
-                                <input class="rounded-lg border-slate-300 dark:bg-slate-800 h-11" type="text" value="Pharos Innovation Labs"/>
+                                <input class="rounded-lg border-slate-300 bg-white dark:bg-slate-800 h-11" type="text" defaultValue="Pharos Innovation Labs"/>
                             </label>
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-semibold">Workspace URL</span>
-                                <input class="rounded-lg border-slate-300 dark:bg-slate-800 h-11" type="text" value="pharos.io/innovation-labs"/>
+                                <input class="rounded-lg border-slate-300 bg-white dark:bg-slate-800 h-11" type="text" defaultValue="innovation-labs"/>
                             </label>
                         </div>
-                        <div class="pt-6 border-t flex justify-end gap-3">
-                            <button class="px-6 py-2.5 border rounded-lg font-bold">Cancel</button>
-                            <button class="px-6 py-2.5 bg-primary text-white rounded-lg font-bold">Save Changes</button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const SkuDetailPage = () => {
-            return (
-                <div class="max-w-[1440px] mx-auto px-6 py-8">
-                    <div class="mb-8">
-                        <h1 class="text-3xl font-black tracking-tight flex items-center gap-3">
-                            Premium Amoxicillin 500mg
-                            <span class="px-2 py-1 text-xs font-bold bg-emerald-100 text-emerald-700 rounded uppercase">Active</span>
-                        </h1>
-                    </div>
-                    <div class="grid grid-cols-12 gap-6">
-                        <div class="col-span-12 lg:col-span-8 space-y-6">
-                            <section class="bg-white dark:bg-slate-900 rounded-xl border p-6 flex gap-6">
-                                <div class="w-1/3 aspect-square bg-slate-100 rounded-lg overflow-hidden">
-                                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNfPi68-9r3RVXKSFnynvN5tsE9uxJFLRjP0JI_Oh3NeBfrf0C4qvD4unQ2g5lZCeJ50eNaNZFlAf4-cPI3ujjBUhk-sYbrr0DDMta5V-BZAgu8XhtwJxsy6aIlqJKrmRI3zUMYHujYCndrMhjReRpq_zjvO-3IrrHJc3F9_xZnKMuI90Nhza7D7G3uI-5plnOcZ8NeC0sJmOhAIYnX0ybMS36U6AV6Rk5RjW1dQPKda06QbYPdLgfcxlEoXuRLtFiBIEjfUQyqi-i" class="w-full h-full object-cover"/>
-                                </div>
-                                <div class="flex-1 grid grid-cols-2 gap-4">
-                                    <div><p class="text-[10px] font-bold text-slate-400">SKU</p><p class="font-bold">PH-90210-A</p></div>
-                                    <div><p class="text-[10px] font-bold text-slate-400">STOCK</p><p class="font-bold">12,400</p></div>
-                                    <div><p class="text-[10px] font-bold text-slate-400">PRICE</p><p class="font-bold">$42.50</p></div>
-                                    <div><p class="text-[10px] font-bold text-slate-400">MARGIN</p><p class="font-bold text-emerald-500">32.4%</p></div>
-                                </div>
-                            </section>
-                            <section class="bg-white dark:bg-slate-900 rounded-xl border p-6 h-64 flex flex-col items-center justify-center text-slate-400">
-                                <span class="material-symbols-outlined text-4xl mb-2">monitoring</span>
-                                <p>Price History Chart Component</p>
-                            </section>
-                        </div>
-                        <div class="col-span-12 lg:col-span-4 space-y-6">
-                            <section class="bg-white dark:bg-slate-900 rounded-xl border p-6">
-                                <h3 class="font-bold mb-4">Stock Forecast</h3>
-                                <div class="p-4 bg-primary/5 border rounded-xl mb-4">
-                                    <p class="text-sm font-bold text-primary">Reorder Suggested</p>
-                                    <p class="text-xs text-slate-600">Place order for 8,500 units by Friday.</p>
-                                </div>
-                                <button class="w-full bg-primary text-white py-2.5 rounded-lg font-bold">Auto-Reorder</button>
-                            </section>
-                        </div>
-                    </div>
+                        <button class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-primary/20">Save Changes</button>
+                    </section>
                 </div>
             );
         };
 
         const ProfilePage = () => {
             return (
-                <div class="max-w-4xl mx-auto py-8">
-                    <div class="bg-white dark:bg-slate-900 border rounded-xl p-8 shadow-sm mb-8">
-                        <div class="flex items-center gap-8">
-                            <div class="size-32 rounded-full overflow-hidden ring-4 ring-primary/10">
-                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa3mhl8fwDbq8cyP2BwJSjgaHm79_TBr-fCdzC6blan1P0FBvJtJdrCyjzntr4lJMPLCznO2jPOH6fL0H_mVSzfn89d6Za2S7TG0q_GHjyu3xFjIdLKpihwJSTJQqFZBWOIwgQBwXezO7PPYWcpqr2q9Me7EoGgZEUsqfKM3wSWCpYSSAnmvuC3kMv5OluQJFqKHknNXyfvfDHKdXV-MCg5H_bOurIU8QwCER24qdPzbfw7WiccQJyWsGqCABecT41wupko-jIqnBb" class="w-full h-full object-cover"/>
-                            </div>
-                            <div>
-                                <h2 class="text-3xl font-black">Alex Rivera</h2>
-                                <p class="text-slate-500">Senior System Administrator • Global HQ</p>
-                                <div class="flex gap-2 mt-4">
-                                    <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">ACTIVE</span>
-                                    <span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full">ADMIN</span>
-                                </div>
-                            </div>
+                <div class="max-w-6xl mx-auto space-y-8">
+                    <h1 class="text-3xl font-extrabold tracking-tight">Admin Profile</h1>
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-8 shadow-sm flex flex-col md:flex-row items-center gap-8">
+                        <div class="w-32 h-32 rounded-full ring-4 ring-primary/10 overflow-hidden">
+                            <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlZlQQiGNRL8mFlTq1mDj_ZzZ8DK93RRtMQEtWYzvFtYKfBo4SqdZlS8QoDOjizguBWRGUa9HWOGmsCQnppw0Uq4qDlK0RwCH2LujsGlKhgeD2zdJDUmTDng1EsYsebhisN75iQsZuUA7BPA7qbSBuCVbOrMFJL0YIOqwculxgE5wLyDeIhY3Kc_1SuNpGovcea1HLWb2iuhcrKLY1ukq67vFZlpNQpVZ3RykalqE8fF40qwdYS6BWNojkiSYjSozlxMJBXNliSAlk"/>
                         </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-8">
-                        <div class="bg-white dark:bg-slate-900 border rounded-xl p-6">
-                            <h3 class="font-bold mb-4">Security</h3>
-                            <button class="w-full py-2 bg-slate-100 rounded-lg text-sm font-bold mb-4">Change Password</button>
-                            <div class="flex justify-between items-center text-sm">
-                                <span>Two-Factor Auth</span>
-                                <span class="text-primary font-bold">Enabled</span>
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-slate-900 border rounded-xl p-6">
-                            <h3 class="font-bold mb-4">Preferences</h3>
-                            <div class="space-y-4">
-                                <div><p class="text-[10px] font-bold text-slate-400">LANGUAGE</p><p class="font-bold">English (US)</p></div>
-                                <div><p class="text-[10px] font-bold text-slate-400">TIMEZONE</p><p class="font-bold">Pacific Time (US)</p></div>
+                        <div class="flex-1 text-center md:text-left">
+                            <h2 class="text-2xl font-bold">Alex Rivera</h2>
+                            <p class="text-slate-500">Administrator • alex.rivera@pharos.io</p>
+                            <div class="mt-4 flex gap-2 justify-center md:justify-start">
+                                <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">ACTIVE</span>
                             </div>
                         </div>
                     </div>
@@ -703,22 +674,23 @@
             );
         };
 
-        // --- App Main Component ---
+        // --- Routing Configuration ---
+
         const App = () => {
             return (
                 <MemoryRouter>
                     <Routes>
-                        <Route path="/" element={<Layout title="Dashboard Overview"><DashboardPage /></Layout>} />
-                        <Route path="/inventory" element={<Layout title="Inventory Management"><InventoryPage /></Layout>} />
-                        <Route path="/competitors" element={<Layout title="Competitor Tracker"><CompetitorsPage /></Layout>} />
-                        <Route path="/pricing" element={<Layout title="Price Monitor"><PricingPage /></Layout>} />
-                        <Route path="/tasks" element={<Layout title="Task Management"><TasksPage /></Layout>} />
-                        <Route path="/alerts" element={<Layout title="Alerts Center"><AlertsPage /></Layout>} />
-                        <Route path="/reports" element={<Layout title="Reports Library"><ReportsPage /></Layout>} />
-                        <Route path="/integrations" element={<Layout title="Integrations Hub"><IntegrationsPage /></Layout>} />
-                        <Route path="/settings" element={<Layout title="Workspace Settings"><SettingsPage /></Layout>} />
-                        <Route path="/sku-details" element={<Layout title="Product Intelligence"><SkuDetailPage /></Layout>} />
-                        <Route path="/profile" element={<Layout title="Admin Profile"><ProfilePage /></Layout>} />
+                        <Route path="/" element={<PageLayout title="Dashboard Overview"><DashboardOverview /></PageLayout>} />
+                        <Route path="/inventory" element={<PageLayout title="Inventory Management"><InventoryPage /></PageLayout>} />
+                        <Route path="/inventory/sku/:skuId" element={<PageLayout title="SKU Detail"><SKUDetail /></PageLayout>} />
+                        <Route path="/competitor-tracker" element={<PageLayout title="Competitor Tracker"><CompetitorTracker /></PageLayout>} />
+                        <Route path="/price-monitor" element={<PageLayout title="Price Monitor"><PriceMonitor /></PageLayout>} />
+                        <Route path="/tasks" element={<PageLayout title="Task Management"><TasksPage /></PageLayout>} />
+                        <Route path="/alerts" element={<PageLayout title="Alerts Center"><AlertsCenter /></PageLayout>} />
+                        <Route path="/reports" element={<PageLayout title="Reports Library"><ReportsLibrary /></PageLayout>} />
+                        <Route path="/integrations" element={<PageLayout title="Integrations"><Integrations /></PageLayout>} />
+                        <Route path="/settings" element={<PageLayout title="Settings"><SettingsPage /></PageLayout>} />
+                        <Route path="/profile" element={<PageLayout title="Admin Profile"><ProfilePage /></PageLayout>} />
                     </Routes>
                 </MemoryRouter>
             );
