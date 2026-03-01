@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>PharOS Margin Defense | Unified Terminal</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5cc8fa",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1115",
+                        "panel": "#171a21",
+                        "border-ui": "#232733",
+                        "border-gray": "#232733",
+                        "border-dark": "#232733",
+                        "critical": "#ff3b30",
+                        "safe": "#34c759",
+                        "text-main": "#e8eaf0",
+                        "text-dim": "#9bb1bb",
+                        "text-muted": "#9bb1bb"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["IBM Plex Mono", "monospace"],
+                        "sans": ["IBM Plex Sans", "Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f1115;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #232733;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5cc8fa;
+        }
+        .brutalist-border {
+            border: 1px solid #232733;
+        }
+        .chart-line {
+            stroke: #5cc8fa;
+            stroke-width: 2;
+            fill: none;
+        }
+        body {
+            background-color: #0f1115;
+            color: #e8eaf0;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-background-dark font-display text-text-main antialiased min-h-screen">
+    <div id="root"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/history@5/umd/history.development.js"></script>
+    <script src="https://unpkg.com/react-router@6.3.0/umd/react-router.development.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.3.0/umd/react-router-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { createRoot } = ReactDOM;
+        const { MemoryRouter, Routes, Route, Link, useNavigate, useLocation } = ReactRouterDOM;
+
+        // --- Shared Components ---
+
+        const AppHeader = ({ activeTab }) => {
+            const navigate = useNavigate();
+            return (
+                <header className="h-16 border-b border-border-ui bg-panel px-6 flex items-center justify-between sticky top-0 z-50">
+                    <div className="flex items-center gap-6">
+                        <Link to="/" className="flex items-center gap-2 text-primary group">
+                            <div className="w-8 h-8 bg-primary/10 border border-primary/20 flex items-center justify-center transition-all group-hover:bg-primary/20">
+                                <span className="material-symbols-outlined text-lg">shield_with_heart</span>
+                            </div>
+                            <h1 className="text-sm font-black tracking-tighter uppercase">PharOS Margin Defense</h1>
+                        </Link>
+                        <nav className="hidden md:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-text-dim">
+                            <Link to="/" className={`hover:text-primary transition-colors ${activeTab === 'dashboard' ? 'text-primary' : ''}`}>Dashboard</Link>
+                            <Link to="/dealers" className={`hover:text-primary transition-colors ${activeTab === 'dealers' ? 'text-primary' : ''}`}>Dealers</Link>
+                            <Link to="/enforcement" className={`hover:text-primary transition-colors ${activeTab === 'enforcement' ? 'text-primary' : ''}`}>Enforcement</Link>
+                            <Link to="/reports" className={`hover:text-primary transition-colors ${activeTab === 'reports' ? 'text-primary' : ''}`}>Reports</Link>
+                        </nav>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="relative hidden sm:block">
+                            <span className="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+                            <input className="bg-background-dark border border-border-ui text-[10px] pl-8 pr-4 py-1.5 w-48 focus:ring-0 focus:border-primary uppercase tracking-tighter" placeholder="SEARCH SYSTEM..." type="text"/>
+                        </div>
+                        <button className="material-symbols-outlined text-text-dim hover:text-white">notifications</button>
+                        <div className="flex items-center gap-3 pl-4 border-l border-border-ui">
+                            <div className="text-right hidden xl:block">
+                                <p className="text-[10px] font-bold leading-none uppercase">Admin_042</p>
+                                <p className="text-[9px] text-primary leading-none uppercase mt-1">Prime Operator</p>
+                            </div>
+                            <div className="w-8 h-8 bg-border-ui border border-slate-700 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-slate-400">person</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            );
+        };
+
+        const GlobalFooter = () => (
+            <footer className="bg-panel border-t border-border-ui px-4 py-2 flex flex-wrap items-center justify-between gap-4 mt-auto">
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-text-dim uppercase tracking-wider">System Status:</span>
+                        <span className="bg-safe/20 text-safe px-2 py-0.5 text-[9px] font-black uppercase rounded-sm border border-safe/30">Active</span>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono text-text-main">
+                        <span className="text-text-dim uppercase tracking-wider font-bold">Node:</span> PH-NODE-09-DELTA
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 text-[10px] font-bold text-text-dim uppercase">
+                    <span>v2.4.1-STABLE</span>
+                    <span className="h-4 w-px bg-border-ui"></span>
+                    <span>© 2024 PHAROS MARGIN DEFENSE</span>
+                </div>
+            </footer>
+        );
+
+        // --- Screen Components ---
+
+        const DashboardScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <AppHeader activeTab="dashboard" />
+                    <main className="p-4 space-y-4 max-w-[1600px] mx-auto w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-panel brutalist-border p-4 flex flex-col justify-between group hover:border-primary transition-colors cursor-pointer" onClick={() => navigate('/reports')}>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Revenue Leak (Est.)</p>
+                                        <h3 className="text-2xl font-bold mt-1">$442,108.00</h3>
+                                    </div>
+                                    <span className="material-symbols-outlined text-primary text-xl">trending_up</span>
+                                </div>
+                                <div className="mt-4 h-12 flex items-end gap-1">
+                                    {[2, 3, 1, 4, 3, 5, 4].map((h, i) => (
+                                        <div key={i} className={`flex-1 ${i === 6 ? 'bg-primary' : 'bg-primary/20'}`} style={{ height: `${h * 20}%` }}></div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-panel brutalist-border p-4 flex flex-col justify-between hover:border-primary transition-colors">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active MAP Violations</p>
+                                        <h3 className="text-2xl font-bold mt-1">1,204</h3>
+                                    </div>
+                                    <span className="px-1.5 py-0.5 bg-critical/20 text-critical text-[9px] font-bold brutalist-border border-critical/50">+12%</span>
+                                </div>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <div className="text-[9px] font-bold px-2 py-1 bg-background-dark brutalist-border flex items-center gap-1 uppercase">
+                                        <span className="w-1.5 h-1.5 bg-critical"></span> Amazon.com
+                                    </div>
+                                    <div className="text-[9px] font-bold px-2 py-1 bg-background-dark brutalist-border flex items-center gap-1 uppercase">
+                                        <span className="w-1.5 h-1.5 bg-orange-500"></span> Walmart
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-panel brutalist-border p-4 flex flex-col justify-between hover:border-primary transition-colors">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active MRP Violations</p>
+                                        <h3 className="text-2xl font-bold mt-1">382</h3>
+                                    </div>
+                                    <span className="px-1.5 py-0.5 bg-green-500/20 text-green-500 text-[9px] font-bold brutalist-border border-green-500/50">-4.2%</span>
+                                </div>
+                                <div className="mt-4 flex gap-4 text-[10px] font-mono">
+                                    <div><p className="text-slate-500 uppercase">Avg. Depth</p><p className="font-bold">14.2%</p></div>
+                                    <div className="border-l border-border-ui pl-4"><p className="text-slate-500 uppercase">Avg. Time</p><p className="font-bold">2.4H</p></div>
+                                </div>
+                            </div>
+                            <div className="bg-panel brutalist-border p-4 flex flex-col justify-between hover:border-primary transition-colors">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Market Health Index</p>
+                                        <h3 className="text-2xl font-bold mt-1">84.2</h3>
+                                    </div>
+                                    <span className="material-symbols-outlined text-primary text-xl">insights</span>
+                                </div>
+                                <div className="mt-4 bg-background-dark h-2 brutalist-border relative overflow-hidden">
+                                    <div className="absolute inset-y-0 left-0 bg-primary w-[84.2%]"></div>
+                                </div>
+                                <p className="text-[9px] text-slate-500 uppercase mt-2">Target Performance: 90.0</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                            <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="bg-panel brutalist-border p-5 text-center flex flex-col justify-center">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Undercut Alerts</p>
+                                    <span className="text-4xl font-bold text-primary">82</span>
+                                    <p className="text-[9px] text-slate-400 mt-2 uppercase">Competitor Match required</p>
+                                </div>
+                                <div className="bg-panel brutalist-border p-5 text-center flex flex-col justify-center">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-2">Dead Stock Value</p>
+                                    <span className="text-3xl font-bold">$1.2M</span>
+                                    <div className="mt-2 flex items-center justify-center text-critical gap-1">
+                                        <span className="material-symbols-outlined text-xs">warning</span>
+                                        <span className="text-[9px] font-bold uppercase">High Risk</span>
+                                    </div>
+                                </div>
+                                <div className="bg-panel brutalist-border p-4 col-span-full">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase mb-4">Top Violating Dealers</p>
+                                    <div className="space-y-3">
+                                        <Link to="/dealers" className="block group">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[11px] font-medium uppercase group-hover:text-primary">NetLink Global</span>
+                                                <span className="text-[11px] font-mono">$12,400</span>
+                                            </div>
+                                            <div className="w-full bg-background-dark h-1.5 border border-border-ui">
+                                                <div className="bg-primary h-full w-[70%]"></div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="lg:col-span-8 bg-panel brutalist-border p-4">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div><h2 className="text-xs font-bold uppercase tracking-widest">Breach Trend Analysis</h2><p className="text-[10px] text-slate-500">Aggregate cross-channel volume</p></div>
+                                    <div className="flex border border-border-ui bg-background-dark p-0.5">
+                                        <button className="px-3 py-1 text-[9px] font-bold uppercase bg-primary text-background-dark">MAP</button>
+                                        <button className="px-3 py-1 text-[9px] font-bold uppercase text-slate-400">MRP</button>
+                                    </div>
+                                </div>
+                                <div className="h-[200px] w-full border-l border-b border-border-ui relative flex items-end">
+                                    <div className="absolute inset-0 grid grid-cols-7 gap-1 items-end px-2 pb-1">
+                                        {[40, 55, 45, 80, 70, 65, 30].map((h, i) => (
+                                            <div key={i} className="bg-primary/20 border-t border-primary w-full relative" style={{ height: `${h}%` }}>
+                                                {h === 80 && <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-mono text-primary">80%</span>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between mt-2 px-1"><span className="text-[9px] font-mono text-slate-600 uppercase">Mon</span><span className="text-[9px] font-mono text-slate-600 uppercase">Sun</span></div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-10 gap-4">
+                            <div className="lg:col-span-7 bg-panel brutalist-border overflow-hidden">
+                                <div className="p-4 border-b border-border-ui flex justify-between items-center">
+                                    <h2 className="text-xs font-bold uppercase tracking-widest">Active Top-Impact Breaches</h2>
+                                </div>
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-background-dark/50 text-[10px] font-bold text-slate-500 uppercase border-b border-border-ui">
+                                        <tr>
+                                            <th className="px-4 py-3">SKU / Model</th>
+                                            <th className="px-4 py-3">Dealer</th>
+                                            <th className="px-4 py-3">Severity</th>
+                                            <th className="px-4 py-3">Impact</th>
+                                            <th className="px-4 py-3 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border-ui text-[11px]">
+                                        <tr className="hover:bg-primary/5 cursor-pointer" onClick={() => navigate('/alert/772-XP')}>
+                                            <td className="px-4 py-3 font-bold">PH-902-EXT</td>
+                                            <td className="px-4 py-3">NetLink Global</td>
+                                            <td className="px-4 py-3"><span className="bg-critical/10 text-critical text-[9px] font-bold px-1.5 py-0.5 border border-critical/30 uppercase">Critical</span></td>
+                                            <td className="px-4 py-3 text-primary font-mono">-$12.4K</td>
+                                            <td className="px-4 py-3 text-right">
+                                                <button className="w-7 h-7 brutalist-border bg-background-dark hover:border-primary text-slate-400 hover:text-primary"><span className="material-symbols-outlined text-sm">visibility</span></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="lg:col-span-3 bg-panel brutalist-border flex flex-col">
+                                <div className="p-4 border-b border-border-ui"><h2 className="text-xs font-bold uppercase tracking-widest">Action Queue</h2></div>
+                                <div className="flex-1 divide-y divide-border-ui overflow-auto max-h-[300px]">
+                                    <div className="p-4 hover:bg-white/5 transition-colors cursor-pointer" onClick={() => navigate('/execution')}>
+                                        <div className="flex justify-between mb-2">
+                                            <span className="text-[11px] font-bold uppercase text-primary">Verify NetLink Escalation</span>
+                                            <span className="text-[9px] font-bold text-critical font-mono">02:14:00</span>
+                                        </div>
+                                        <span className="text-[9px] px-1 bg-border-ui text-slate-400 uppercase font-bold">In-Progress</span>
+                                    </div>
+                                </div>
+                                <div className="p-3 border-t border-border-ui bg-background-dark">
+                                    <button onClick={() => navigate('/execution')} className="w-full py-2 bg-primary text-background-dark text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-colors">View All Tasks (12)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <GlobalFooter />
+                </div>
+            );
+        };
+
+        const DealerHealthScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen">
+                    <AppHeader activeTab="dealers" />
+                    <main className="flex-1 p-6 space-y-6">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 brutalist-border p-6 bg-slate-900/20">
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-3xl font-black uppercase tracking-tighter text-white">Netlink Global</h2>
+                                    <span className="px-2 py-0.5 bg-border-dark text-[10px] font-bold text-slate-400 uppercase tracking-widest">ID: NL-99283</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="px-2 py-1 bg-safe/10 text-safe text-[10px] font-bold uppercase border border-safe/30">Authorized</span>
+                                    <span className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase border border-primary/30">Multi-channel</span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end gap-1">
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Dealer Health Score</div>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-5xl font-black text-critical tracking-tighter">42/100</span>
+                                    <span className="text-sm font-bold text-critical uppercase tracking-widest">CRITICAL</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-0 brutalist-border">
+                            <div className="p-6 border-r border-border-dark">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Total Revenue</p>
+                                <p className="text-3xl font-black text-white tracking-tighter">$1,248,000</p>
+                                <p className="text-[10px] font-bold text-safe mt-1 flex items-center gap-1 uppercase"><span className="material-symbols-outlined text-xs">trending_up</span> +12.4%</p>
+                            </div>
+                            <div className="p-6 border-r border-border-dark">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">MAP Violations (30D)</p>
+                                <p className="text-3xl font-black text-critical tracking-tighter">28</p>
+                                <p className="text-[10px] font-bold text-critical mt-1 flex items-center gap-1 uppercase"><span className="material-symbols-outlined text-xs">trending_up</span> +45%</p>
+                            </div>
+                            <div className="p-6 border-r border-border-dark">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Lifetime Violations</p>
+                                <p className="text-3xl font-black text-white tracking-tighter">142</p>
+                            </div>
+                            <div className="p-6">
+                                <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">Margin Impact ($)</p>
+                                <p className="text-3xl font-black text-critical tracking-tighter">-$14,200</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 brutalist-border p-6 bg-slate-900/10">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-white mb-8">Violation Frequency (90D)</h3>
+                                <div className="h-48 w-full relative">
+                                    <svg className="w-full h-full overflow-visible" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                                        <polyline className="chart-line" points="0,180 100,160 200,170 300,120 400,140 500,60 600,100 700,40 800,90 900,20 1000,50"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="brutalist-border p-6 bg-slate-900/10 flex flex-col justify-between">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-white mb-6">Severity Distribution</h3>
+                                <div className="space-y-4">
+                                    {[
+                                        { label: 'Critical', color: 'bg-critical', val: 45 },
+                                        { label: 'High', color: 'bg-orange-500', val: 30 },
+                                        { label: 'Medium', color: 'bg-yellow-500', val: 20 }
+                                    ].map(item => (
+                                        <div key={item.label} className="space-y-1">
+                                            <div className="flex justify-between text-[10px] font-bold uppercase">
+                                                <span className={item.label === 'Critical' ? 'text-critical' : 'text-slate-400'}>{item.label}</span>
+                                                <span className="text-white">{item.val}%</span>
+                                            </div>
+                                            <div className="w-full bg-border-dark h-2">
+                                                <div className={`${item.color} h-full`} style={{ width: `${item.val}%` }}></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => navigate('/bulk')} className="w-full bg-primary text-background-dark text-[10px] font-black uppercase py-3 mt-6 hover:brightness-110">Initiate Enforcement Action</button>
+                            </div>
+                        </div>
+                    </main>
+                    <GlobalFooter />
+                </div>
+            );
+        };
+
+        const BulkEnforcementScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex h-screen flex-col overflow-hidden bg-background-dark">
+                    <AppHeader activeTab="enforcement" />
+                    <div className="flex items-center justify-between bg-panel border-b border-border-gray px-6 py-4 shrink-0">
+                        <div className="flex flex-col gap-1">
+                            <h2 className="text-2xl font-black uppercase tracking-tight">Initiate Bulk Enforcement</h2>
+                            <p className="text-[11px] font-mono text-text-muted uppercase">Batch ID: OPS-9928-DELTA | 48 Entities Selected</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={() => navigate(-1)} className="border border-border-gray px-4 py-2 text-xs font-bold uppercase hover:bg-white hover:text-black transition-all">Discard Batch</button>
+                        </div>
+                    </div>
+                    <div className="flex border-b border-border-gray bg-background-dark shrink-0">
+                        <div className="flex-1 flex items-center justify-center py-3 border-r border-border-gray bg-panel border-b-2 border-primary text-primary">
+                            <span className="text-[10px] font-black tracking-[0.2em]">01 SELECTION & VALIDATION</span>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center py-3 border-r border-border-gray text-text-muted">
+                            <span className="text-[10px] font-black tracking-[0.2em]">02 ACTION CONFIGURATION</span>
+                        </div>
+                        <div className="flex-1 flex items-center justify-center py-3 text-text-muted">
+                            <span className="text-[10px] font-black tracking-[0.2em]">03 EXECUTION & LOGGING</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-1 overflow-hidden">
+                        <div className="flex-1 flex flex-col bg-background-dark overflow-hidden border-r border-border-gray">
+                            <div className="p-4 border-b border-border-gray flex items-center justify-between bg-panel/50">
+                                <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">Selected Entities (48)</h3>
+                            </div>
+                            <div className="flex-1 overflow-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="sticky top-0 bg-background-dark border-b border-border-gray">
+                                        <tr className="text-[10px] uppercase font-bold text-text-muted">
+                                            <th className="p-3 border-r border-border-gray w-10"><input type="checkbox" checked className="bg-background-dark text-primary focus:ring-0" /></th>
+                                            <th className="p-3 border-r border-border-gray">Entity Name</th>
+                                            <th className="p-3 border-r border-border-gray text-center">Health</th>
+                                            <th className="p-3 text-right">Revenue at Risk</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="text-[11px] font-mono">
+                                        <tr className="border-b border-border-gray hover:bg-panel">
+                                            <td className="p-3 border-r border-border-gray"><input type="checkbox" checked className="bg-background-dark text-primary focus:ring-0" /></td>
+                                            <td className="p-3 border-r border-border-gray font-bold">Omni-Channel Logistics GMBH</td>
+                                            <td className="p-3 border-r border-border-gray text-center"><span className="bg-critical/20 text-critical px-2 py-0.5 border border-critical/30">12%</span></td>
+                                            <td className="p-3 text-right text-critical">$842,900.00</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div className="w-[480px] flex flex-col bg-panel">
+                            <div className="flex-1 overflow-auto p-6 space-y-8">
+                                <section>
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4">Step 2: Action Configuration</h4>
+                                    <div className="space-y-4">
+                                        <div className="border border-primary p-4 bg-background-dark border-l-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <p className="text-[11px] font-bold uppercase mb-1">Send Formal Cease & Desist</p>
+                                                    <p className="text-[10px] text-text-muted">Transmit legal notification via registered e-portal.</p>
+                                                </div>
+                                                <input type="checkbox" checked className="bg-background-dark text-primary focus:ring-0" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                            <div className="border-t border-border-gray p-6 bg-background-dark">
+                                <button onClick={() => navigate('/execution')} className="w-full bg-critical hover:bg-critical/90 py-4 text-xs font-black uppercase tracking-[0.3em] text-white">Execute Bulk Action</button>
+                                <p className="mt-3 text-[9px] text-center font-mono text-text-muted uppercase">This action is logged and irreversible.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ExecutionDashboardScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col h-screen bg-background-dark overflow-hidden">
+                    <header className="border-b border-border-ui bg-panel px-6 py-4 flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-primary/10 p-2 border border-primary/20"><span className="material-symbols-outlined text-primary text-2xl">shield_with_heart</span></div>
+                                <div>
+                                    <h1 className="text-xl font-black tracking-tighter uppercase">Batch: <span className="text-primary">OPS-9928-DELTA</span></h1>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse-slow"></span>
+                                        <span className="text-[10px] font-bold tracking-widest text-primary uppercase">Execution Active</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={() => navigate('/reports')} className="bg-primary text-background-dark px-6 py-2 text-xs font-black uppercase tracking-widest hover:bg-primary/90">Finalize & Report</button>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                            <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
+                                <span className="text-text-dim">Overall Batch Completion</span>
+                                <span className="text-primary">46% — 22 of 48 Actions Processed</span>
+                            </div>
+                            <div className="w-full h-1 bg-border-ui overflow-hidden"><div className="h-full bg-primary" style={{ width: '46%' }}></div></div>
+                        </div>
+                    </header>
+                    <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+                        <section className="lg:w-3/5 border-r border-border-ui flex flex-col overflow-hidden">
+                            <div className="bg-panel/50 px-4 py-2 border-b border-border-ui flex justify-between items-center text-[11px] font-bold uppercase">
+                                <span>Live Execution Feed</span>
+                            </div>
+                            <div className="flex-1 overflow-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="sticky top-0 bg-background-dark z-10 text-[10px] font-bold text-text-dim uppercase border-b border-border-ui">
+                                        <tr><th className="px-4 py-3">Entity Identifier</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Status</th></tr>
+                                    </thead>
+                                    <tbody className="font-mono text-[11px] divide-y divide-border-ui/50">
+                                        <tr className="hover:bg-primary/5">
+                                            <td className="px-4 py-3 text-text-main">AMZN-GLOBAL-VENDOR-092</td>
+                                            <td className="px-4 py-3 text-text-dim">Price Adjustment</td>
+                                            <td className="px-4 py-3"><span className="px-1.5 py-0.5 bg-safe/10 text-safe border border-safe/30">200 OK</span></td>
+                                        </tr>
+                                        <tr className="bg-critical/5 border-l-2 border-critical">
+                                            <td className="px-4 py-3 text-critical">WMT-MARKETPLACE-BETA-4</td>
+                                            <td className="px-4 py-3">Cease & Desist</td>
+                                            <td className="px-4 py-3"><span className="px-1.5 py-0.5 bg-critical/20 text-critical border border-critical/30">500 ERR</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                        <section className="lg:w-2/5 flex flex-col overflow-hidden bg-black/40">
+                            <div className="bg-panel/50 px-4 py-2 border-b border-border-ui text-[11px] font-bold uppercase">System Command Log</div>
+                            <div className="flex-1 p-4 font-mono text-[10px] leading-relaxed overflow-auto text-text-dim bg-[#0a0c10]">
+                                <div className="mb-1"><span className="text-primary">[14:22:10.012]</span> - SYSTEM: Initializing batch sequence...</div>
+                                <div className="mb-1"><span className="text-primary">[14:22:11.102]</span> - <span className="text-critical">POST</span> /api/legal/wmt-beta-4 <span className="text-critical">500 ERROR</span></div>
+                                <div className="mb-1 animate-pulse border-l border-primary pl-2"><span className="text-primary">[14:22:19.001]</span> - LISTENING: Awaiting gateway response...</div>
+                            </div>
+                        </section>
+                    </main>
+                    <GlobalFooter />
+                </div>
+            );
+        };
+
+        const PostEnforcementReportScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen bg-background-dark">
+                    <AppHeader activeTab="reports" />
+                    <main className="flex-grow p-6 max-w-[1400px] mx-auto w-full">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 brutalist-border border-primary/30 uppercase">Batch ID: OPS-9928-DELTA</span>
+                                    <span className="text-xs font-mono bg-green-500/10 text-green-500 px-2 py-0.5 brutalist-border border-green-500/30 uppercase font-bold">Status: COMPLETED</span>
+                                </div>
+                                <h2 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none">Post-Enforcement Report</h2>
+                                <p className="text-slate-500 mt-2 font-mono text-sm uppercase">Analysis Period: 24h Enforcement Window</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button className="brutalist-border bg-primary text-background-dark px-4 py-2 text-xs font-black uppercase flex items-center gap-2 hover:invert transition-all">
+                                    <span className="material-symbols-outlined text-sm">download</span> Export PDF
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                            <div className="brutalist-border p-6 flex flex-col gap-1">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Total Revenue Secured</span>
+                                <span className="text-4xl font-black text-primary">$12.4M</span>
+                            </div>
+                            <div className="brutalist-border p-6 flex flex-col gap-1 border-l-0">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Success Rate</span>
+                                <span className="text-4xl font-black">96%</span>
+                            </div>
+                            <div className="brutalist-border p-6 flex flex-col gap-1 border-l-0">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Entities Processed</span>
+                                <span className="text-4xl font-black">48</span>
+                            </div>
+                            <div className="brutalist-border p-6 flex flex-col gap-1 border-l-0">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">Compliance Lift</span>
+                                <span className="text-4xl font-black text-primary">+24%</span>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-8">
+                                <div className="brutalist-border bg-slate-900/30 p-4 border-b-0"><h3 className="text-sm font-black uppercase tracking-widest">Top Impact Entities</h3></div>
+                                <div className="brutalist-border p-4 space-y-2">
+                                    {[1, 2, 3].map(i => (
+                                        <div key={i} className="brutalist-border p-3 flex items-center justify-between hover:border-primary transition-all">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-xs font-mono text-slate-500">0{i}</span>
+                                                <span className="font-bold text-sm">GLOBAL_VENDOR_992_{i}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="block text-[10px] text-slate-500 font-bold uppercase">Margin Saved</span>
+                                                <span className="text-sm font-mono text-primary">$1,240,400</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="lg:col-span-4">
+                                <div className="brutalist-border bg-slate-900/30 p-4 border-b-0"><h3 className="text-sm font-black uppercase tracking-widest">Residual Risk</h3></div>
+                                <div className="brutalist-border p-6 h-full flex flex-col justify-between">
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="bg-red-500/20 text-red-500 p-2 brutalist-border"><span className="material-symbols-outlined block">priority_high</span></div>
+                                            <div>
+                                                <span className="block text-[10px] font-bold text-slate-500 uppercase">Remaining Violations</span>
+                                                <span className="text-3xl font-black font-mono">142</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => navigate('/')} className="w-full brutalist-border border-primary text-primary px-4 py-4 text-xs font-black uppercase mt-8 hover:bg-primary hover:text-background-dark">Return to Dashboard</button>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <GlobalFooter />
+                </div>
+            );
+        };
+
+        const AlertDetailScreen = () => {
+            const navigate = useNavigate();
+            return (
+                <div className="flex flex-col min-h-screen bg-background-dark">
+                    <AppHeader activeTab="dashboard" />
+                    <main className="p-6 space-y-6 max-w-[1600px] mx-auto w-full">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 brutalist-border p-6 bg-panel">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs font-mono text-slate-500 uppercase">System Alert ID: #772-XP</span>
+                                    <span className="text-xs bg-critical/10 text-critical border border-critical px-2 font-black uppercase">Critical</span>
+                                    <span className="text-xs bg-primary/10 text-primary border border-primary px-2 font-black uppercase">Open</span>
+                                </div>
+                                <h2 className="text-4xl font-black tracking-tight uppercase leading-none">SKU: PX-9920 | <span className="text-primary">NorthStar Retail</span></h2>
+                                <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">Last Sync: 2023-11-24 08:42:11 GMT-5</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button className="bg-primary hover:bg-white text-background-dark font-black text-xs px-6 py-3 uppercase tracking-widest transition-colors flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-sm">task_alt</span> Resolve Alert
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-12 gap-6">
+                            <div className="col-span-12 lg:col-span-7">
+                                <div className="bg-panel brutalist-border p-6">
+                                    <h3 className="font-black uppercase tracking-widest text-sm mb-6 border-b border-border-gray pb-4">Violation Rule Breakdown</h3>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                        <div className="p-4 brutalist-border bg-background-dark">
+                                            <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Rule</label>
+                                            <span className="text-lg font-black uppercase leading-none block">MAP Violation</span>
+                                        </div>
+                                        <div className="p-4 brutalist-border bg-background-dark border-l-2 border-l-critical">
+                                            <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Actual Price</label>
+                                            <span className="text-lg font-black leading-none block text-critical">$149.00</span>
+                                        </div>
+                                        <div className="p-4 brutalist-border bg-background-dark">
+                                            <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1">Expected</label>
+                                            <span className="text-lg font-black leading-none block">$185.00</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-background-dark brutalist-border p-4 font-mono text-sm border-l-4 border-l-primary">
+                                        <span className="text-critical font-black uppercase">Delta: -$36.00 (-19.46%)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-span-12 lg:col-span-5">
+                                <div className="bg-panel brutalist-border p-6 h-full">
+                                    <h3 className="font-black uppercase tracking-widest text-sm mb-6 border-b border-border-gray pb-4">Incident Timeline</h3>
+                                    <div className="relative pt-4 pb-8">
+                                        <div className="absolute top-8 left-0 w-full h-px bg-border-gray"></div>
+                                        <div className="relative flex justify-between">
+                                            <div className="flex flex-col items-center gap-3 relative z-10">
+                                                <div className="w-3 h-3 bg-primary"></div>
+                                                <p className="text-[10px] font-black uppercase">Detected</p>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-3 relative z-10">
+                                                <div className="w-3 h-3 bg-critical"></div>
+                                                <p className="text-[10px] font-black uppercase">Repeated</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <GlobalFooter />
+                </div>
+            );
+        };
+
+        // --- Main App ---
+
+        const App = () => {
+            return (
+                <MemoryRouter>
+                    <Routes>
+                        <Route path="/" element={<DashboardScreen />} />
+                        <Route path="/dealers" element={<DealerHealthScreen />} />
+                        <Route path="/bulk" element={<BulkEnforcementScreen />} />
+                        <Route path="/execution" element={<ExecutionDashboardScreen />} />
+                        <Route path="/reports" element={<PostEnforcementReportScreen />} />
+                        <Route path="/alert/:id" element={<AlertDetailScreen />} />
+                    </Routes>
+                </MemoryRouter>
+            );
+        };
+
+        const rootElement = document.getElementById('root');
+        const root = createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
